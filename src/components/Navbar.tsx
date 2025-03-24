@@ -55,13 +55,13 @@ export default function Navbar() {
             </Link>
             <div className="flex space-x-3">
               <Link
-                href="/register/vendor"
+                href="/register/"
                 className="font-libre bg-blue-100 text-blue-900 hover:bg-blue-200 px-3 py-2 rounded-md text-sm transition duration-300"
               >
                 Register
               </Link>
               <Link
-                href="/login"
+                href="/vendor-login"
                 className="font-libre bg-blue-800 text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm transition duration-300"
               >
                 Login

@@ -19,7 +19,8 @@ export default function DashboardShowcase() {
         "Monitor equipment status and repair progress",
         "Create and manage vendor accounts",
       ],
-      imagePath: "/super-admin-dashboard.png",
+      imagePath:
+        "https://res.cloudinary.com/dcf4czeat/image/upload/v1742851554/super_admin_n8pzkq.png",
       imageAlt: "Super Admin Dashboard",
     },
     {
@@ -34,7 +35,8 @@ export default function DashboardShowcase() {
         "Track vessel repair status",
         "Access vessel documentation",
       ],
-      imagePath: "/ship-admin-dashboard.png",
+      imagePath:
+        "https://res.cloudinary.com/dcf4czeat/image/upload/v1742851554/Ship_account_bp9k7p.png",
       imageAlt: "Ship Admin Dashboard",
     },
     {
@@ -49,7 +51,8 @@ export default function DashboardShowcase() {
         "Upload service reports and documentation",
         "Access vessel information for assigned jobs",
       ],
-      imagePath: "/vendor-dashboard.png",
+      imagePath:
+        "https://res.cloudinary.com/dcf4czeat/image/upload/v1742851554/vendor_vessel_m_gh1ao4.png",
       imageAlt: "Vendor Dashboard",
     },
   ];

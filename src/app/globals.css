@@ -5,19 +5,108 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Add specific section colors that won't change with color scheme */
+  --hero-bg: #1e3a8a;
+  /* blue-900 */
+  --hero-text: #ffffff;
+  --features-bg: #f9fafb;
+  /* gray-50 */
+  --features-text: #1f2937;
+  /* gray-800 */
+  --features-heading: #111827;
+  /* gray-900 */
+  --card-bg: #ffffff;
+  --card-text: #4b5563;
+  /* gray-600 */
+  --card-heading: #111827;
+  /* gray-900 */
+  --cta-bg: #1e3a8a;
+  /* blue-900 */
+  --cta-text: #ffffff;
+  --footer-bg: #111827;
+  /* gray-900 */
+  --footer-text: #d1d5db;
+  /* gray-300 */
 }
 
+.libre-baskerville-regular {
+  font-family: var(--font-libre-baskerville);
+  font-weight: 400;
+  font-style: normal;
+}
+
+.libre-baskerville-bold {
+  font-family: var(--font-libre-baskerville);
+  font-weight: 700;
+  font-style: normal;
+}
+
+.libre-baskerville-regular-italic {
+  font-family: var(--font-libre-baskerville);
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    /* These colors remain consistent in dark mode */
+    --features-bg: #111827;
+    /* gray-900 */
+    --features-text: #e5e7eb;
+    /* gray-200 */
+    --features-heading: #f9fafb;
+    /* gray-50 */
+    --card-bg: #1f2937;
+    /* gray-800 */
+    --card-text: #d1d5db;
+    /* gray-300 */
+    --card-heading: #f9fafb;
+    /* gray-50 */
   }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Section-specific styles */
+.hero-section {
+  background-color: var(--hero-bg);
+  color: var(--hero-text);
+}
+
+.features-section {
+  background-color: var(--features-bg);
+  color: var(--features-text);
+}
+
+.features-heading {
+  color: var(--features-heading);
+}
+
+.feature-card {
+  background-color: var(--card-bg);
+  color: var(--card-text);
+}
+
+.feature-card h3 {
+  color: var(--card-heading);
+}
+
+.cta-section {
+  background-color: var(--cta-bg);
+  color: var(--cta-text);
+}
+
+.footer-section {
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
 }
 
 @layer utilities {

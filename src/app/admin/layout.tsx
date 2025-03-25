@@ -1,54 +1,89 @@
-// app/admin/layout.tsx
-import { ReactNode } from "react";
+"use client";
+
+import { ReactNode, useEffect } from "react";
 import { DashboardLayout } from "@/components/(dashboard)/DashboardLayout";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import {
+  Home,
+  Ship,
+  Wrench,
+  BarChart2,
+  Settings,
+  Users,
+  FileText,
+  Shield,
+} from "lucide-react";
 
-// Icons (you can replace these with actual icons from a library like heroicons or react-icons)
-const HomeIcon = () => <span>🏠</span>;
-const ShipIcon = () => <span>🚢</span>;
-const ToolsIcon = () => <span>🔧</span>;
-const StatusIcon = () => <span>📊</span>;
-const RepairIcon = () => <span>🛠️</span>;
-const VendorIcon = () => <span>👥</span>;
-
+// Admin navigation links with Lucide icons
 const adminLinks = [
   {
     label: "Dashboard",
     href: "/admin",
-    icon: <HomeIcon />,
+    icon: <Home className="w-5 h-5" />,
   },
   {
     label: "Vessels",
     href: "/admin/vessels",
-    icon: <ShipIcon />,
+    icon: <Ship className="w-5 h-5" />,
   },
   {
     label: "Maintenance Reports",
     href: "/admin/maintenance",
-    icon: <ToolsIcon />,
+    icon: <FileText className="w-5 h-5" />,
   },
   {
     label: "Equipment Status",
     href: "/admin/equipment",
-    icon: <StatusIcon />,
+    icon: <Wrench className="w-5 h-5" />,
   },
   {
     label: "Repair Status",
     href: "/admin/repairs",
-    icon: <RepairIcon />,
+    icon: <Settings className="w-5 h-5" />,
   },
   {
     label: "Vendor Management",
     href: "/admin/vendors",
-    icon: <VendorIcon />,
+    icon: <Users className="w-5 h-5" />,
+  },
+  {
+    label: "Statistics",
+    href: "/admin/statistics",
+    icon: <BarChart2 className="w-5 h-5" />,
+  },
+  {
+    label: "Security",
+    href: "/admin/security",
+    icon: <Shield className="w-5 h-5" />,
   },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  // Use useEffect for client-side redirects instead of redirect()
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || user?.role !== "SUPER_ADMIN")) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, isLoading, user, router]);
+
+  // Show loading state while checking authentication
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
+      </div>
+    );
+  }
+
   return (
     <DashboardLayout
       sidebarLinks={adminLinks}
       userRole="admin"
-      userName="Samudera Energi Tangguh"
+      userName={user?.name || "Admin User"}
     >
       {children}
     </DashboardLayout>

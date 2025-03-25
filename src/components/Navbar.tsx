@@ -61,7 +61,7 @@ export default function Navbar() {
                 Register
               </Link>
               <Link
-                href="/vendor-login"
+                href="/login"
                 className="font-libre bg-blue-800 text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm transition duration-300"
               >
                 Login

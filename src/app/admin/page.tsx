@@ -1,12 +1,20 @@
-// app/admin/page.tsx
+"use client";
+
 import { StatCard } from "@/components/(dashboard)/StatCard";
 import { DataTable } from "@/components/tables/DataTable";
-
-// Mock Icons
-const ShipIcon = () => <span className="text-xl">🚢</span>;
-const ToolsIcon = () => <span className="text-xl">🔧</span>;
-const AlertIcon = () => <span className="text-xl">⚠️</span>;
-const VendorIcon = () => <span className="text-xl">👥</span>;
+import { withAuthGuard } from "@/hoc/withAuthGuard";
+import { UserRole } from "@/types";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Ship,
+  Wrench,
+  AlertTriangle,
+  Users,
+  PlusCircle,
+  ClipboardList,
+  Eye,
+  Edit,
+} from "lucide-react";
 
 // Mock data
 const recentRepairs = [
@@ -36,12 +44,14 @@ const recentRepairs = [
   },
 ];
 
-export default function AdminDashboard() {
+function AdminDashboard() {
+  const { user } = useAuth();
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl libre-baskerville-bold text-foreground">
-          SuperAdmin Dashboard
+          Welcome, {user?.name || "Admin"}
         </h1>
         <p className="text-gray-500 dark:text-gray-400">
           Overview of fleet status and maintenance
@@ -50,19 +60,27 @@ export default function AdminDashboard() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Vessels" value={12} icon={<ShipIcon />} />
+        <StatCard
+          title="Total Vessels"
+          value={12}
+          icon={<Ship className="w-6 h-6 text-blue-600" />}
+        />
         <StatCard
           title="Ongoing Repairs"
           value={5}
-          icon={<ToolsIcon />}
+          icon={<Wrench className="w-6 h-6 text-orange-600" />}
           change="+2 from last month"
           changeType="negative"
         />
-        <StatCard title="Equipment Alerts" value={8} icon={<AlertIcon />} />
+        <StatCard
+          title="Equipment Alerts"
+          value={8}
+          icon={<AlertTriangle className="w-6 h-6 text-yellow-600" />}
+        />
         <StatCard
           title="Active Vendors"
           value={15}
-          icon={<VendorIcon />}
+          icon={<Users className="w-6 h-6 text-green-600" />}
           change="+3 from last month"
           changeType="positive"
         />
@@ -107,13 +125,19 @@ export default function AdminDashboard() {
             { header: "Vendor", accessor: "vendor" },
             { header: "Date", accessor: "date" },
           ]}
-          actions={(_item) => (
+          actions={(item) => (
             <div className="flex space-x-2">
-              <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                View
+              <button
+                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
+                onClick={() => console.log(`View repair ${item.id}`)}
+              >
+                <Eye className="w-4 h-4 mr-1" /> View
               </button>
-              <button className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
-                Edit
+              <button
+                className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 flex items-center"
+                onClick={() => console.log(`Edit repair ${item.id}`)}
+              >
+                <Edit className="w-4 h-4 mr-1" /> Edit
               </button>
             </div>
           )}
@@ -127,17 +151,21 @@ export default function AdminDashboard() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center text-card-text">
-            <span className="mr-2">🚢</span> Add New Vessel
+          <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center text-card-text transition-colors">
+            <Ship className="w-5 h-5 mr-2 text-blue-600" /> Add New Vessel
           </button>
-          <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center text-card-text">
-            <span className="mr-2">👥</span> Add New Vendor
+          <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center text-card-text transition-colors">
+            <Users className="w-5 h-5 mr-2 text-green-600" /> Add New Vendor
           </button>
-          <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center text-card-text">
-            <span className="mr-2">📋</span> Create Maintenance Report
+          <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center text-card-text transition-colors">
+            <ClipboardList className="w-5 h-5 mr-2 text-orange-600" /> Create
+            Maintenance Report
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+// Export with auth guard protection
+export default withAuthGuard(AdminDashboard, [UserRole.SUPER_ADMIN]);

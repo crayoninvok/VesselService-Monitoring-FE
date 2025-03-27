@@ -39,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${libreBaskerville.variable}`}
+        className={`font-sans ${geistSans.variable} ${geistMono.variable} ${libreBaskerville.variable}`}
       >
         {children}
       </body>

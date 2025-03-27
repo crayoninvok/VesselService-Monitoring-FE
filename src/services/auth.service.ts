@@ -1,6 +1,10 @@
 // services/auth.service.ts
 import { LoginResponse, RegisterVendorRequest, UserRole } from "@/types";
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL_BE;
+
+// Use environment variable with fallback for API URL
+const API_URL = process.env.NEXT_PUBLIC_BASE_URL_BE || "http://localhost:8000/api";
+
+console.log("Auth Service initialized with API_URL:", API_URL);
 
 /**
  * AuthService handles all authentication related API calls
@@ -13,23 +17,38 @@ export class AuthService {
     email: string,
     password: string
   ): Promise<LoginResponse> {
-    console.log("API URL being used:", API_URL);
-    const response = await fetch(`${API_URL}/auth/login/super-admin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-      credentials: "include",
-    });
+    const url = `${API_URL}/auth/login/super-admin`;
+    console.log("Sending login request to:", url);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to login");
+    try {
+      // Use window.fetch to ensure it's the browser's native fetch
+      const response = await window.fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+        mode: "cors", // Explicitly set CORS mode
+      });
+
+      console.log("Login response status:", response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to login");
+      }
+
+      const data = await response.json();
+      console.log("Login successful!");
+
+      // Store the auth data
+      this.storeAuthData(data);
+
+      return data;
+    } catch (error) {
+      console.error("Login request error:", error);
+      throw error;
     }
-
-    const data = await response.json();
-    return data;
   }
 
   /**
@@ -39,21 +58,31 @@ export class AuthService {
     email: string,
     password: string
   ): Promise<LoginResponse> {
-    const response = await fetch(`${API_URL}/auth/login/ship-admin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-      credentials: "include",
-    });
+    const url = `${API_URL}/auth/login/ship-admin`;
+    console.log("Sending request to:", url);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to login");
+    try {
+      const response = await window.fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+        mode: "cors",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to login");
+      }
+
+      const data = await response.json();
+      this.storeAuthData(data);
+      return data;
+    } catch (error) {
+      console.error("Login request error:", error);
+      throw error;
     }
-
-    return await response.json();
   }
 
   /**
@@ -63,21 +92,31 @@ export class AuthService {
     email: string,
     password: string
   ): Promise<LoginResponse> {
-    const response = await fetch(`${API_URL}/auth/login/vendor`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-      credentials: "include",
-    });
+    const url = `${API_URL}/auth/login/vendor`;
+    console.log("Sending request to:", url);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to login");
+    try {
+      const response = await window.fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+        mode: "cors",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to login");
+      }
+
+      const data = await response.json();
+      this.storeAuthData(data);
+      return data;
+    } catch (error) {
+      console.error("Login request error:", error);
+      throw error;
     }
-
-    return await response.json();
   }
 
   /**
@@ -86,36 +125,54 @@ export class AuthService {
   static async registerVendor(
     vendorData: RegisterVendorRequest
   ): Promise<{ message: string; userId: string }> {
-    const response = await fetch(`${API_URL}/auth/register/vendor`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(vendorData),
-    });
+    const url = `${API_URL}/auth/register/vendor`;
+    console.log("Sending request to:", url);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to register");
+    try {
+      const response = await window.fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(vendorData),
+        mode: "cors",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to register");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Register request error:", error);
+      throw error;
     }
-
-    return await response.json();
   }
 
   /**
    * Verify email with token
    */
   static async verifyEmail(token: string): Promise<{ message: string }> {
-    const response = await fetch(`${API_URL}/auth/verify-email/${token}`, {
-      method: "GET",
-    });
+    const url = `${API_URL}/auth/verify-email/${token}`;
+    console.log("Sending request to:", url);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to verify email");
+    try {
+      const response = await window.fetch(url, {
+        method: "GET",
+        mode: "cors",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to verify email");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Verify email request error:", error);
+      throw error;
     }
-
-    return await response.json();
   }
 
   /**
@@ -124,29 +181,44 @@ export class AuthService {
   static async verifyToken(
     token: string
   ): Promise<{ message: string; user: LoginResponse["user"] }> {
-    const response = await fetch(`${API_URL}/auth/verify-token`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const url = `${API_URL}/auth/verify-token`;
+    console.log("Sending request to:", url);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Invalid token");
+    try {
+      const response = await window.fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        mode: "cors",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Invalid token");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Verify token request error:", error);
+      throw error;
     }
-
-    return await response.json();
   }
 
   /**
    * Store authentication data in localStorage
    */
   static storeAuthData(data: LoginResponse): void {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      console.log("Auth data stored in localStorage");
+    try {
+      console.log("Storing auth data in localStorage");
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        console.log("Auth data stored successfully");
+      }
+    } catch (error) {
+      console.error("Error storing auth data:", error);
     }
   }
 
@@ -157,26 +229,34 @@ export class AuthService {
     token: string | null;
     user: LoginResponse["user"] | null;
   } {
-    if (typeof window === "undefined") {
+    try {
+      if (typeof window === "undefined") {
+        return { token: null, user: null };
+      }
+
+      const token = localStorage.getItem("token");
+      const userJson = localStorage.getItem("user");
+      const user = userJson ? JSON.parse(userJson) : null;
+
+      return { token, user };
+    } catch (error) {
+      console.error("Error getting auth data:", error);
       return { token: null, user: null };
     }
-
-    const token = localStorage.getItem("token");
-    const userJson = localStorage.getItem("user");
-
-    return {
-      token,
-      user: userJson ? JSON.parse(userJson) : null,
-    };
   }
 
   /**
    * Clear authentication data from localStorage
    */
   static clearAuthData(): void {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        console.log("Auth data cleared");
+      }
+    } catch (error) {
+      console.error("Error clearing auth data:", error);
     }
   }
 

@@ -63,15 +63,26 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
-  // Use useEffect for client-side redirects instead of redirect()
+  // Use useEffect for client-side redirects
   useEffect(() => {
+    console.log("AdminLayout auth check:", {
+      isLoading,
+      isAuthenticated,
+      userRole: user?.role,
+    });
+
     if (!isLoading && (!isAuthenticated || user?.role !== "SUPER_ADMIN")) {
+      console.log("AdminLayout: Redirecting to login. Auth status:", {
+        isLoading,
+        isAuthenticated,
+        userRole: user?.role,
+      });
       router.push("/login");
     }
   }, [isAuthenticated, isLoading, user, router]);
 
   // Show loading state while checking authentication
-  if (isLoading || !isAuthenticated) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
@@ -79,13 +90,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  // Don't render children if not authenticated or wrong role
+  if (!isAuthenticated || user?.role !== "SUPER_ADMIN") {
+    return null; // Return nothing while redirect happens
+  }
+
   return (
-    <DashboardLayout
-      sidebarLinks={adminLinks}
-      userRole="admin"
-      userName={user?.name || "Admin User"}
-    >
-      {children}
-    </DashboardLayout>
+    <div className="font-sans antialiased text-gray-900 dark:text-gray-100">
+      <DashboardLayout
+        sidebarLinks={adminLinks}
+        userRole="admin"
+        userName={user?.name || "Admin User"}
+      >
+        {children}
+      </DashboardLayout>
+    </div>
   );
 }

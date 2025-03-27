@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Menu, Bell, User, LogOut, Settings } from "lucide-react";
 
 interface HeaderProps {
@@ -11,6 +11,26 @@ interface HeaderProps {
 
 export function Header({ userName, onMenuClick, onLogout }: HeaderProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    setUserMenuOpen(false);
+    onLogout();
+  };
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm z-10">
@@ -32,7 +52,7 @@ export function Header({ userName, onMenuClick, onLogout }: HeaderProps) {
             <Bell className="w-5 h-5" />
           </button>
 
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
@@ -55,7 +75,7 @@ export function Header({ userName, onMenuClick, onLogout }: HeaderProps) {
                 </button>
                 <hr className="my-1 border-gray-200 dark:border-gray-700" />
                 <button
-                  onClick={onLogout}
+                  onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
                 >
                   <LogOut className="w-4 h-4 mr-2" />

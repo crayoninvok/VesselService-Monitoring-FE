@@ -30,23 +30,26 @@ export function DashboardLayout({
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
-      <Sidebar
-        links={sidebarLinks}
-        userRole={userRole}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onLogout={logout}
-      />
+    <div className="flex min-h-screen h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden">
+      {/* Sidebar container with fixed width */}
+      <div className="w-64 h-screen flex-none">
+        <Sidebar
+          links={sidebarLinks}
+          userRole={userRole}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          onLogout={logout}
+        />
+      </div>
 
-      <div className="flex-1">
+      {/* Content area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Header
           userName={userName}
           onMenuClick={toggleSidebar}
           onLogout={logout}
         />
-
-        <main className="p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
     </div>
   );

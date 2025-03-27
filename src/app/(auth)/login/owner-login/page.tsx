@@ -13,14 +13,18 @@ export default function OwnerLogin() {
 
   // Get auth methods and state from custom hook
   const { loginSuperAdmin, isLoading } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted with:", email);
+    console.log("Form submitted with email:", email);
     setError("");
 
     try {
+      console.log("Attempting to login as Super Admin...");
       await loginSuperAdmin(email, password);
+      console.log("Login initiated successfully");
     } catch (error) {
+      console.error("Login error in component:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -29,7 +33,6 @@ export default function OwnerLogin() {
       setError(errorMessage);
     }
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-blue-800 flex items-center justify-center p-4">
       <div className="max-w-md w-full">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types";
@@ -46,38 +46,44 @@ export function withAuthGuard<P extends object>(
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
+    // Use useRef to store the allowedRoles to avoid the linter warning
+    const rolesRef = useRef(allowedRoles);
+
     useEffect(() => {
-      // Check if authentication is still loading
+      console.log("Auth guard checking authentication:", {
+        isLoading,
+        isAuthenticated,
+        userRole: user?.role,
+      });
+
+      // If still loading auth state, do nothing yet
       if (isLoading) {
         return;
       }
 
-      // Check if user is authenticated
+      // If not authenticated, redirect immediately
       if (!isAuthenticated || !user) {
         console.log("Not authenticated, redirecting to login");
         router.push("/login");
         return;
       }
 
-      // If no specific roles are required, allow access to any authenticated user
-      if (allowedRoles.length === 0) {
-        setIsAuthorized(true);
-        setIsCheckingAuth(false);
-        return;
-      }
+      // If no roles specified or user has required role, mark as authorized
+      const roles = rolesRef.current;
+      const hasRequiredRole = roles.length === 0 || roles.includes(user.role);
 
-      // Check if user has required role
-      const hasRequiredRole = allowedRoles.includes(user.role);
-
-      if (!hasRequiredRole) {
-        console.log("Not authorized for this page");
-        setIsAuthorized(false);
-      } else {
-        setIsAuthorized(true);
-      }
-
+      setIsAuthorized(hasRequiredRole);
       setIsCheckingAuth(false);
-    }, [isAuthenticated, user, isLoading, router]);
+
+      // Log authorization status for debugging
+      console.log(
+        `User role: ${user.role}, Required roles: ${roles.join(
+          ", "
+        )}, Authorized: ${hasRequiredRole}`
+      );
+
+      // If not authorized (wrong role), no need to redirect - we'll show the unauthorized screen
+    }, [isAuthenticated, user, isLoading, router]); // allowedRoles removed from deps array
 
     // Show loading screen while checking authentication
     if (isLoading || isCheckingAuth) {

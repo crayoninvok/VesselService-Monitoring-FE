@@ -10,14 +10,23 @@ import {
   Wrench,
   AlertTriangle,
   Users,
-  PlusCircle,
   ClipboardList,
   Eye,
   Edit,
 } from "lucide-react";
 
-// Mock data
-const recentRepairs = [
+// Define the repair item type
+type RepairItem = {
+  id: number;
+  vessel: string;
+  equipment: string;
+  status: string;
+  vendor: string;
+  date: string;
+};
+
+// Mock data for recent repairs
+const recentRepairs: RepairItem[] = [
   {
     id: 1,
     vessel: "Bright Horizon",
@@ -44,13 +53,32 @@ const recentRepairs = [
   },
 ];
 
+// Status color mapping with explicit index signature
+const statusColors: { [key: string]: string } = {
+  Success: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  Repairing: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  "Waiting for Spareparts":
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+};
+
 function AdminDashboard() {
   const { user } = useAuth();
 
+  // Handle view action
+  const handleView = (id: number): void => {
+    console.log(`View repair ${id}`);
+  };
+
+  // Handle edit action
+  const handleEdit = (id: number): void => {
+    console.log(`Edit repair ${id}`);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl libre-baskerville-bold text-foreground">
+        <h1 className="text-2xl font-bold text-foreground">
           Welcome, {user?.name || "Admin"}
         </h1>
         <p className="text-gray-500 dark:text-gray-400">
@@ -88,7 +116,7 @@ function AdminDashboard() {
 
       {/* Recent Repair Activities */}
       <div className="bg-card-bg p-5 rounded-lg shadow">
-        <h2 className="text-lg libre-baskerville-regular mb-4 text-card-heading">
+        <h2 className="text-lg font-medium mb-4 text-card-heading">
           Recent Repair Activities
         </h2>
 
@@ -100,42 +128,30 @@ function AdminDashboard() {
             {
               header: "Status",
               accessor: "status",
-              cell: (item) => {
-                const statusColors: Record<string, string> = {
-                  Success:
-                    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-                  Repairing:
-                    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-                  "Waiting for Spareparts":
-                    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-                };
-
-                return (
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      statusColors[item.status] ||
-                      "bg-gray-100 dark:bg-gray-700"
-                    }`}
-                  >
-                    {item.status}
-                  </span>
-                );
-              },
+              cell: (item: RepairItem) => (
+                <span
+                  className={`px-2 py-1 rounded-full text-xs ${
+                    statusColors[item.status] || "bg-gray-100 dark:bg-gray-700"
+                  }`}
+                >
+                  {item.status}
+                </span>
+              ),
             },
             { header: "Vendor", accessor: "vendor" },
             { header: "Date", accessor: "date" },
           ]}
-          actions={(item) => (
+          actions={(item: RepairItem) => (
             <div className="flex space-x-2">
               <button
                 className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
-                onClick={() => console.log(`View repair ${item.id}`)}
+                onClick={() => handleView(item.id)}
               >
                 <Eye className="w-4 h-4 mr-1" /> View
               </button>
               <button
                 className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 flex items-center"
-                onClick={() => console.log(`Edit repair ${item.id}`)}
+                onClick={() => handleEdit(item.id)}
               >
                 <Edit className="w-4 h-4 mr-1" /> Edit
               </button>
@@ -146,7 +162,7 @@ function AdminDashboard() {
 
       {/* Quick Actions */}
       <div className="bg-card-bg p-5 rounded-lg shadow">
-        <h2 className="text-lg libre-baskerville-regular mb-4 text-card-heading">
+        <h2 className="text-lg font-medium mb-4 text-card-heading">
           Quick Actions
         </h2>
 
@@ -158,8 +174,8 @@ function AdminDashboard() {
             <Users className="w-5 h-5 mr-2 text-green-600" /> Add New Vendor
           </button>
           <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center text-card-text transition-colors">
-            <ClipboardList className="w-5 h-5 mr-2 text-orange-600" /> Create
-            Maintenance Report
+            <ClipboardList className="w-5 h-5 mr-2 text-orange-600" />
+            Create Maintenance Report
           </button>
         </div>
       </div>

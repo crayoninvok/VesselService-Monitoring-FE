@@ -1,8 +1,62 @@
 // app/admin/repairs/page.tsx
+"use client";
+
+import { useMemo } from "react";
 import { DataTable } from "@/components/tables/DataTable";
 
+// Define types for our data
+type RepairStatus =
+  | "Waiting Vendor"
+  | "Process"
+  | "Technician Onboard"
+  | "Repairing"
+  | "Waiting for Spareparts"
+  | "Success"
+  | "Still Damaged"
+  | "Cancelled";
+
+type PriorityLevel = "High" | "Medium" | "Low";
+
+interface Repair {
+  id: number;
+  vessel: string;
+  equipment: string;
+  issue: string;
+  status: RepairStatus;
+  priority: PriorityLevel;
+  vendor: string;
+  startDate: string;
+  estimatedCompletion: string;
+  location: string;
+  completionDate?: string;
+  note?: string;
+}
+
+// Status color mapping with proper typing
+const statusColors: Record<RepairStatus, string> = {
+  "Waiting Vendor":
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+  Process: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+  "Technician Onboard":
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+  Repairing: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  "Waiting for Spareparts":
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+  Success: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  "Still Damaged": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  Cancelled: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+};
+
+// Priority color mapping with proper typing
+const priorityColors: Record<PriorityLevel, string> = {
+  High: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  Medium:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+  Low: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+};
+
 // Mock repair data
-const repairs = [
+const repairs: Repair[] = [
   {
     id: 1,
     vessel: "Bright Horizon",
@@ -92,13 +146,85 @@ const repairs = [
 ];
 
 export default function RepairsPage() {
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const activeRepairs = repairs.filter(
+      (r) => r.status !== "Success" && r.status !== "Cancelled"
+    );
+    const highPriorityActive = repairs.filter(
+      (r) => r.priority === "High" && r.status !== "Success"
+    );
+    const completedRepairs = repairs.filter((r) => r.status === "Success");
+    const pendingAssignment = repairs.filter(
+      (r) => r.status === "Waiting Vendor"
+    );
+    const successRate = Math.round(
+      (completedRepairs.length / repairs.length) * 100
+    );
+
+    return {
+      total: repairs.length,
+      active: activeRepairs.length,
+      highPriority: highPriorityActive.length,
+      highPriorityTotal: repairs.filter((r) => r.priority === "High").length,
+      completed: completedRepairs.length,
+      pendingAssignment: pendingAssignment.length,
+      successRate,
+    };
+  }, []);
+
+  // Get unique vessels and their stats
+  const vesselStats = useMemo(() => {
+    const vessels = Array.from(new Set(repairs.map((r) => r.vessel)));
+
+    return vessels.map((vessel) => {
+      const vesselRepairs = repairs.filter((r) => r.vessel === vessel);
+      const activeRepairs = vesselRepairs.filter(
+        (r) => r.status !== "Success" && r.status !== "Cancelled"
+      );
+      const completedRepairs = vesselRepairs.filter(
+        (r) => r.status === "Success"
+      );
+      const highPriorityRepairs = vesselRepairs.filter(
+        (r) => r.priority === "High" && r.status !== "Success"
+      );
+      const successRate =
+        vesselRepairs.length > 0
+          ? Math.round((completedRepairs.length / vesselRepairs.length) * 100)
+          : 0;
+
+      return {
+        vessel,
+        total: vesselRepairs.length,
+        active: activeRepairs.length,
+        completed: completedRepairs.length,
+        highPriority: highPriorityRepairs.length,
+        successRate,
+      };
+    });
+  }, []);
+
+  // Handle view action
+  const handleView = (id: number): void => {
+    console.log(`View repair ${id}`);
+  };
+
+  // Handle edit action
+  const handleEdit = (id: number): void => {
+    console.log(`Edit repair ${id}`);
+  };
+
+  // Handle assign vendor action
+  const handleAssignVendor = (id: number): void => {
+    console.log(`Assign vendor to repair ${id}`);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl libre-baskerville-bold text-foreground">
-            Repair Status
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground">Repair Status</h1>
           <p className="text-gray-500 dark:text-gray-400">
             Monitor and manage repairs across the fleet
           </p>
@@ -107,7 +233,7 @@ export default function RepairsPage() {
           <button className="bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800 text-white px-4 py-2 rounded-md">
             Pending Assignment{" "}
             <span className="ml-1 bg-white text-orange-500 px-2 py-0.5 rounded-full text-xs">
-              1
+              {stats.pendingAssignment}
             </span>
           </button>
           <button className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800 text-white px-4 py-2 rounded-md">
@@ -125,12 +251,14 @@ export default function RepairsPage() {
             </label>
             <select className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md p-2 w-40 text-foreground">
               <option value="">All Vessels</option>
-              <option value="bright-horizon">Bright Horizon</option>
-              <option value="crystal-sea">Crystal Sea</option>
-              <option value="blue-wave">Blue Wave</option>
-              <option value="northern-star">Northern Star</option>
-              <option value="eastern-wind">Eastern Wind</option>
-              <option value="western-breeze">Western Breeze</option>
+              {vesselStats.map((stat) => (
+                <option
+                  key={stat.vessel}
+                  value={stat.vessel.toLowerCase().replace(/\s+/g, "-")}
+                >
+                  {stat.vessel}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -139,13 +267,14 @@ export default function RepairsPage() {
             </label>
             <select className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md p-2 w-48 text-foreground">
               <option value="">All Statuses</option>
-              <option value="waiting-vendor">Waiting Vendor</option>
-              <option value="process">Process</option>
-              <option value="technician-onboard">Technician Onboard</option>
-              <option value="repairing">Repairing</option>
-              <option value="waiting-spareparts">Waiting for Spareparts</option>
-              <option value="success">Success</option>
-              <option value="still-damaged">Still Damaged</option>
+              {Object.keys(statusColors).map((status) => (
+                <option
+                  key={status}
+                  value={status.toLowerCase().replace(/\s+/g, "-")}
+                >
+                  {status}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -154,9 +283,11 @@ export default function RepairsPage() {
             </label>
             <select className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md p-2 w-40 text-foreground">
               <option value="">All Priorities</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              {Object.keys(priorityColors).map((priority) => (
+                <option key={priority} value={priority.toLowerCase()}>
+                  {priority}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -188,18 +319,10 @@ export default function RepairsPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Total Repairs
           </p>
-          <p className="text-2xl font-bold text-card-heading">
-            {repairs.length}
-          </p>
+          <p className="text-2xl font-bold text-card-heading">{stats.total}</p>
           <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
             Active:{" "}
-            <span className="font-medium text-card-text">
-              {
-                repairs.filter(
-                  (r) => r.status !== "Success" && r.status !== "Cancelled"
-                ).length
-              }
-            </span>
+            <span className="font-medium text-card-text">{stats.active}</span>
           </div>
         </div>
 
@@ -208,16 +331,12 @@ export default function RepairsPage() {
             High Priority
           </p>
           <p className="text-2xl font-bold text-red-600 dark:text-red-500">
-            {
-              repairs.filter(
-                (r) => r.priority === "High" && r.status !== "Success"
-              ).length
-            }
+            {stats.highPriority}
           </p>
           <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
             Total:{" "}
             <span className="font-medium text-card-text">
-              {repairs.filter((r) => r.priority === "High").length}
+              {stats.highPriorityTotal}
             </span>
           </div>
         </div>
@@ -225,17 +344,12 @@ export default function RepairsPage() {
         <div className="bg-card-bg p-4 rounded-lg shadow">
           <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-500">
-            {repairs.filter((r) => r.status === "Success").length}
+            {stats.completed}
           </p>
           <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
             Success Rate:{" "}
             <span className="font-medium text-card-text">
-              {Math.round(
-                (repairs.filter((r) => r.status === "Success").length /
-                  repairs.length) *
-                  100
-              )}
-              %
+              {stats.successRate}%
             </span>
           </div>
         </div>
@@ -245,7 +359,7 @@ export default function RepairsPage() {
             Pending Assignment
           </p>
           <p className="text-2xl font-bold text-orange-600 dark:text-orange-500">
-            {repairs.filter((r) => r.status === "Waiting Vendor").length}
+            {stats.pendingAssignment}
           </p>
           <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
             Needs action{" "}
@@ -265,64 +379,36 @@ export default function RepairsPage() {
             {
               header: "Status",
               accessor: "status",
-              cell: (item) => {
-                const statusColors: Record<string, string> = {
-                  "Waiting Vendor":
-                    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-                  Process:
-                    "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-                  "Technician Onboard":
-                    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-                  Repairing:
-                    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-                  "Waiting for Spareparts":
-                    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-                  Success:
-                    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-                  "Still Damaged":
-                    "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-                };
-
-                return (
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      statusColors[item.status] ||
-                      "bg-gray-100 dark:bg-gray-700"
-                    }`}
-                  >
-                    {item.status}
-                  </span>
-                );
-              },
+              cell: (item: Repair) => (
+                <span
+                  className={`px-2 py-1 rounded-full text-xs ${
+                    statusColors[item.status as RepairStatus] ||
+                    "bg-gray-100 dark:bg-gray-700"
+                  }`}
+                >
+                  {item.status}
+                </span>
+              ),
             },
             {
               header: "Priority",
               accessor: "priority",
-              cell: (item) => {
-                const priorityColors: Record<string, string> = {
-                  High: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-                  Medium:
-                    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-                  Low: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-                };
-
-                return (
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      priorityColors[item.priority]
-                    }`}
-                  >
-                    {item.priority}
-                  </span>
-                );
-              },
+              cell: (item: Repair) => (
+                <span
+                  className={`px-2 py-1 rounded-full text-xs ${
+                    priorityColors[item.priority as PriorityLevel]
+                  }`}
+                >
+                  {item.priority}
+                </span>
+              ),
             },
             { header: "Vendor", accessor: "vendor" },
             { header: "Location", accessor: "location" },
             { header: "Started", accessor: "startDate" },
             { header: "Est. Completion", accessor: "estimatedCompletion" },
           ]}
-          actions={(item) => (
+          actions={(item: Repair) => (
             <div className="flex space-x-2">
               <a
                 href={`/admin/repairs/${item.id}`}
@@ -330,11 +416,17 @@ export default function RepairsPage() {
               >
                 View
               </a>
-              <button className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
+              <button
+                onClick={() => handleEdit(item.id)}
+                className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
+              >
                 Edit
               </button>
               {item.status === "Waiting Vendor" && (
-                <button className="text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300">
+                <button
+                  onClick={() => handleAssignVendor(item.id)}
+                  className="text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300"
+                >
                   Assign Vendor
                 </button>
               )}
@@ -345,7 +437,7 @@ export default function RepairsPage() {
 
       {/* Repair Statistics by Vessel */}
       <div className="bg-card-bg p-5 rounded-lg shadow">
-        <h2 className="text-lg libre-baskerville-regular mb-4 text-card-heading">
+        <h2 className="text-lg font-medium mb-4 text-card-heading">
           Repair Statistics by Vessel
         </h2>
 
@@ -392,81 +484,58 @@ export default function RepairsPage() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {Array.from(new Set(repairs.map((r) => r.vessel))).map(
-                (vessel) => {
-                  const vesselRepairs = repairs.filter(
-                    (r) => r.vessel === vessel
-                  );
-                  const activeRepairs = vesselRepairs.filter(
-                    (r) => r.status !== "Success" && r.status !== "Cancelled"
-                  );
-                  const completedRepairs = vesselRepairs.filter(
-                    (r) => r.status === "Success"
-                  );
-                  const highPriorityRepairs = vesselRepairs.filter(
-                    (r) => r.priority === "High" && r.status !== "Success"
-                  );
-                  const successRate =
-                    vesselRepairs.length > 0
-                      ? Math.round(
-                          (completedRepairs.length / vesselRepairs.length) * 100
-                        )
-                      : 0;
-
-                  return (
-                    <tr key={vessel}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        {vessel}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        {vesselRepairs.length}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            activeRepairs.length > 0
-                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                          }`}
-                        >
-                          {activeRepairs.length}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        {completedRepairs.length}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            highPriorityRepairs.length > 0
-                              ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                          }`}
-                        >
-                          {highPriorityRepairs.length}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                          <div
-                            className={`h-2.5 rounded-full ${
-                              successRate > 80
-                                ? "bg-green-500"
-                                : successRate > 50
-                                ? "bg-yellow-500"
-                                : "bg-red-500"
-                            }`}
-                            style={{ width: `${successRate}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 inline-block">
-                          {successRate}%
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                }
-              )}
+              {vesselStats.map((stat) => (
+                <tr key={stat.vessel}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    {stat.vessel}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    {stat.total}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        stat.active > 0
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {stat.active}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    {stat.completed}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        stat.highPriority > 0
+                          ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {stat.highPriority}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                      <div
+                        className={`h-2.5 rounded-full ${
+                          stat.successRate > 80
+                            ? "bg-green-500"
+                            : stat.successRate > 50
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
+                        }`}
+                        style={{ width: `${stat.successRate}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 inline-block">
+                      {stat.successRate}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -474,7 +543,7 @@ export default function RepairsPage() {
 
       {/* Recent Repair Activity */}
       <div className="bg-card-bg p-5 rounded-lg shadow">
-        <h2 className="text-lg libre-baskerville-regular mb-4 text-card-heading">
+        <h2 className="text-lg font-medium mb-4 text-card-heading">
           Recent Repair Activity
         </h2>
 
